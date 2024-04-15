@@ -1,0 +1,30 @@
+{
+    "websitesList": [{
+        "url": "https://example.com",
+        "elementsLocator": {
+            "mainContent": "table.class tbody tr",
+            "pagination": "div.pagination-container.text-center",
+            "subPageContent": "#files-table tbody tr",
+            "tableElements": "td, th"
+        }, 
+        "hasSubPaths": true,
+        "subPathIdIndex": 1,
+        "subUrl": "https://example.com",
+        "severity": {
+            "suspicious": "medium",
+            "malicious": "very high"
+        },
+        "pageLimitStart": 1,
+        "pageLimit": 2,
+        "pageCallDelayInMs": 10000
+    }],
+    "torNetworkCheckUrl": "https://check.torproject.org/",
+    "ignoreTorNetworkChecks": false,
+    "extensionsAndTargetDevices": {
+        "apk": "android",
+        "dll": "windows",
+        "dmg": "mac",
+        "default": "all",
+        "exe": "windows"
+    }
+}
