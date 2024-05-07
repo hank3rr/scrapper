@@ -1,78 +1,44 @@
-const { formatData } = require("./helpers")
+const { formatDataFromScrapper1 } = require("./helpers");
 
-const enums = {
-    NO_SPECIFIC_THREAT: "no specific threat"
+function scrapeWebsitesSequentially(websitesScraperFnList) {
+  let promiseChain = Promise.resolve();
+
+  websitesScraperFnList.forEach((callback) => {
+    promiseChain = promiseChain.then(callback);
+  });
+
+  return promiseChain
+    .then(() => console.log("Scraping has been completed"))
+    .catch((error) => console.error("Error during callback execution:", error));
 }
 
-function scrapeForMalwares (browserContextInstance, urlsList) {
-    const promises = [];
-    urlsList.forEach(async (urlConfig) => {
-        for (let pageNo = urlConfig.pageLimitStart; pageNo < urlConfig.pageLimit; pageNo++) {
-            promises.push(new Promise(async(resolve, reject) => {
-                try {   
-                    setTimeout(async() => {
-                        console.log("visiting URL: " + urlConfig.url + `?page=${pageNo}`);
-                        const page = await browserContextInstance.newPage();
-                        await page.goto(urlConfig.url + `?page=${pageNo}`, { waitUntil: 'domcontentloaded', timeout: 300000 });
-                      
-                        const data = await page.$$eval(urlConfig.elementsLocator.mainContent, (rows) => {
-                            return rows.map((row) => {
-                            const cells = row.querySelectorAll(urlConfig.elementsLocator.tableElements);
-                            
-                            return Array.from(cells, (cells) => cells.textContent.trim());
-                            });
-                        });
-                        // console.log(data);
-        
-                        if (urlConfig.hasSubPaths) await scrapeSubPages(browserContextInstance, data, urlConfig);
-                        resolve();
-                    }, urlConfig.pageCallDelayInMs)
-                } catch (err) {
-                    reject(err);
-                }
-            }))
-        }
-        
+function initializeScrapper(browserContextInstance) {
+  // For website: https://0x00sec.org/categories
+  const scrapper1 = () =>
+    new Promise(async (resolve, reject) => {
+      const baseUrl = "https://0x00sec.org";
+      const page = await browserContextInstance.newPage();
+      await page.goto(baseUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 300000,
+      });
+
+      async function scrapeData() {
+        const data = await page.$$eval("table tbody tr", (rows) => {
+          return rows.map((row) => {
+            const cells = row.querySelectorAll("td, th");
+
+            return Array.from(cells, (cells) => cells.textContent.trim());
+          });
+        });
+
+        //   console.log(data);
+        formatDataFromScrapper1(data);
+      }
+      resolve();
     });
 
-    return Promise.allSettled(promises);   
-     
+  return scrapeWebsitesSequentially([scrapper1]);
 }
 
-
-function scrapeSubPages (browserContextInstance, data, urlConfig) {
-    const promises = [];
-    data.forEach((row) => {
-        promises.push(new Promise(async (resolve, reject) => {
-            try {
-                if (!row.includes(enums.NO_SPECIFIC_THREAT)) {
-                    setTimeout(async () => {
-                        const id = row[urlConfig.subPathIdIndex].split(" ").pop();
-                    
-                        console.log("visiting URL: " + urlConfig.subUrl + `/${id}`);
-                        const page = await browserContextInstance.newPage();
-                        await page.goto(urlConfig.subUrl + `/${id}`, { waitUntil: 'domcontentloaded', timeout: 300000 });
-                      
-                        const data = await page.$$eval(urlConfig.elementsLocator.subPageContent, (rows) => {
-                            return rows.map((row) => {
-                            const cells = row.querySelectorAll(urlConfig.elementsLocator.tableElements);
-                            
-                            return Array.from(cells, (cells) => cells.textContent.trim());
-                            });
-                        });
-                        // console.log(data);
-                        formatData(urlConfig, data, enums);
-                        resolve();
-                    }, urlConfig.pageCallDelayInMs)
-                } else {
-                    reject();
-                }
-            } catch (err) {
-                reject(err);
-            }
-        }))
-    });
-
-    return Promise.allSettled(promises);
-} 
-module.exports = { scrapeForMalwares };
+module.exports = { initializeScrapper };

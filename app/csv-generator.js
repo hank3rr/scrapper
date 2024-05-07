@@ -1,37 +1,37 @@
 let isFnCalledOnce = false;
 
-exports.exportCsv = (malwaresList) => {
-    const data = [];
-    // console.log(malwaresList);
-    for (const malware of malwaresList) {
-        let row = {
-            "Program name": malware.fileName,
-            "Target Device": malware.device,
-            "Attack Severity": malware.severity,
-            "Extension": malware.ext,
-          };
-          data.push(row);    
-        
-    }
-  
-    const csvRows = [];
-    const headers = Object.keys(data[0]).length ? Object.keys(data[0]): null;
+exports.exportCsv = (reportList) => {
+  const data = [];
+  // console.log(malwaresList);
+  for (const report of reportList) {
+    let row = {
+      Topic: report.topic,
+      Replies: report.replies,
+      Views: report.views,
+      "Last Activity": report.last_activity,
+      Tags: report.tags,
+    };
+    data.push(row);
+  }
 
-    if (!headers) return;
+  const csvRows = [];
+  const headers = Object.keys(data[0]).length ? Object.keys(data[0]) : null;
 
-    if (!isFnCalledOnce) {
-        csvRows.push(headers.join(",") + "\n");
-        isFnCalledOnce = true;
-    }
+  if (!headers) return;
 
-    for (const row of data) {
-        const values = headers.map((header, index) => {
-            let escaped = ("" + row[header]).replace(/"/g, '\\"');
-            return `"${escaped}"`;
-          });    
-        
-        csvRows.push(values.join(",") + "\n");
-    }
-    
-    return csvRows.join("");
-  };
+  if (!isFnCalledOnce) {
+    csvRows.push(headers.join(",") + "\n");
+    isFnCalledOnce = true;
+  }
+
+  for (const row of data) {
+    const values = headers.map((header, index) => {
+      let escaped = ("" + row[header]).replace(/"/g, '\\"');
+      return `"${escaped}"`;
+    });
+
+    csvRows.push(values.join(",") + "\n");
+  }
+
+  return csvRows.join("");
+};

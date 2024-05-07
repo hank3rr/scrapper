@@ -1,26 +1,16 @@
-const puppeteer = require('puppeteer');
-const { scrapeForMalwares } = require("./app/scrapper");
-const config = require("./config.json");
-const { isTorNetworkEnabled } = require('./app/helpers');
+const puppeteer = require("puppeteer");
+const { initializeScrapper } = require("./app/scrapper");
 
 (async () => {
   try {
-    const browserInstance = await puppeteer.launch(
-        {
-            args: ['--proxy-server=socks5://127.0.0.1:9050'],
-            headless: true
-        },
-      );
-      
+    const browserInstance = await puppeteer.launch({
+      headless: false,
+      args: ["--disable-gpu"],
+    });
+
     const browserContext = await browserInstance.createBrowserContext();
-    
-    if (!config.ignoreTorNetworkChecks) {
-        if (!await isTorNetworkEnabled(browserContext, config.torNetworkCheckUrl)) return;
-    } else {
-        console.log("ignoring tor network check");
-    }
-      
-    await scrapeForMalwares(browserContext, config.websitesList);
+
+    await initializeScrapper(browserContext);
     await browserContext.close();
     await browserInstance.close();
   } catch (err) {
