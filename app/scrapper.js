@@ -23,18 +23,16 @@ function initializeScrapper(browserContextInstance) {
         timeout: 300000,
       });
 
-      async function scrapeData() {
-        const data = await page.$$eval("table tbody tr", (rows) => {
-          return rows.map((row) => {
-            const cells = row.querySelectorAll("td, th");
+      const data = await page.$$eval("table tbody tr", (rows) => {
+        return rows.map((row) => {
+          const cells = row.querySelectorAll("td, th");
 
-            return Array.from(cells, (cells) => cells.textContent.trim());
-          });
+          return Array.from(cells, (cells) => cells.textContent.trim());
         });
+      });
 
-        //   console.log(data);
-        formatDataFromScrapper1(data);
-      }
+      //   console.log(data);
+      formatDataFromScrapper1(data);
       resolve();
     });
 
