@@ -6,6 +6,7 @@ const { initializeScrapper } = require("./app/scrapper");
     const browserInstance = await puppeteer.launch({
       headless: false,
       args: ["--disable-gpu"],
+      protocolTimeout: 300000,
     });
 
     const browserContext = await browserInstance.createBrowserContext();
