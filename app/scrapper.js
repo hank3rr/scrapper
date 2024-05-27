@@ -1,4 +1,7 @@
-const { formatDataFromScrapper1 } = require("./helpers");
+const {
+  formatDataFromScrapper1,
+  formatDataFromScrapper2,
+} = require("./helpers");
 
 function scrapeWebsitesSequentially(websitesScraperFnList) {
   let promiseChain = Promise.resolve();
@@ -56,9 +59,34 @@ function initializeScrapper(browserContextInstance) {
       });
 
       formatDataFromScrapper1(data);
+      resolve();
     });
 
-  return scrapeWebsitesSequentially([scrapper1]);
+  const scrapper2 = () =>
+    new Promise(async (resolve, reject) => {
+      const pageLimit = 3;
+
+      for (let pageNo = 1; pageNo <= pageLimit; pageNo++) {
+        const baseUrl = `https://www.wilderssecurity.com/forums/security-in-a-world-with-ai.148/page-${pageNo}`;
+        const page = await browserContextInstance.newPage();
+        await page.goto(baseUrl, {
+          waitUntil: "domcontentloaded",
+          timeout: 300000,
+        });
+
+        const data = await page.$$eval("ol.discussionListItems", (rows) => {
+          return rows.map((row) => {
+            const cells = row.querySelectorAll("li");
+
+            return Array.from(cells, (cells) => cells.textContent.trim());
+          });
+        });
+
+        formatDataFromScrapper2(data[0]);
+      }
+      resolve();
+    });
+  return scrapeWebsitesSequentially([scrapper1, scrapper2]);
 }
 
 module.exports = { initializeScrapper };

@@ -27,4 +27,30 @@ function formatDataFromScrapper1(rawData) {
   return;
 }
 
-module.exports = { formatDataFromScrapper1 };
+function formatDataFromScrapper2(rawData) {
+  const formattedData = [];
+  rawData.forEach((data) => {
+    const topicAndTags = data
+      .split("\n")
+      .map((str) => str.trim())
+      .filter((str) => str);
+    console.log(topicAndTags);
+    formattedData.push({
+      topic: topicAndTags[0],
+      replies: topicAndTags[3].split(":")[1].trim(),
+      views: topicAndTags[4].split(":")[1].trim(),
+      last_activity: topicAndTags[topicAndTags.length - 1],
+      tags: "Artificial Intelligence, Malware",
+    });
+  });
+  // console.log(formattedData)
+  const csvData = exportCsv(formattedData);
+  fs.appendFile("forumReports-2.csv", csvData, (err) => {
+    if (err) {
+      console.error("Error appending to CSV:", err);
+    }
+  });
+  return;
+}
+
+module.exports = { formatDataFromScrapper1, formatDataFromScrapper2 };
